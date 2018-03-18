@@ -1,0 +1,10 @@
+{
+  "name": "udacity-deeplearning",
+  "version": "1.0.0",
+  "description": "Udacity Deep Learning Nanodegree course notes and projects",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ibesora",
+  "license": "Beerware"
+}
