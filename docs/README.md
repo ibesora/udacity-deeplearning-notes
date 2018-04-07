@@ -186,6 +186,8 @@ $$$ STEP(n) = STEP(n) + \beta STEP(n-1) + \beta^2 STEP(n-2) + ... $$$
 
 This way, the steps that gradient descent has taken time ago matters less than the ones that happened recently.
 
+## Sentiment Analysis
+
 # Resources
 ## Links
 ### Repositories
