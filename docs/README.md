@@ -100,7 +100,6 @@ $$$ b' = b + \alpha(y - \hat{y}) $$$
 
 Note that since we've taken the average of errors, the term we are adding should be $$\frac{1}{m}\cdot\alpha$$ instead of $$\alpha$$.
 
-
 ### Non-linear models
 What happens if the classification boundary can't be represented with just a line and we need more complex shapes? The answer is to use multi-layer perceptrons or what's the same, a Neural Network. 
 
@@ -123,6 +122,36 @@ can be written as the following equation:
 
 $$$\hat{y} = \sigma\begin{pmatrix}W^2_{11} \\ W^2_{21} \\ W^2_{31}\end{pmatrix}\sigma\begin{pmatrix}W^1_{11} && W^1_{12}\\W^1_{21} && W^1_{22}\\W^1_{31} && W^1_{32}\end{pmatrix}\begin{pmatrix}x_1 \\ x_2 \\ 1\end{pmatrix}$$$
 
+#### Implementation
+This sample code implements a forward pass through a 4x3x2 network, with **sigmoid** activation functions for both output layers:
+
+```python
+import numpy as np
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+# Network size
+N_input = 4
+N_hidden = 3
+N_output = 2
+
+np.random.seed(42)
+# Make some fake data
+X = np.random.randn(4)
+
+weights_input_to_hidden = np.random.normal(0, scale=0.1, size=(N_input, N_hidden))
+weights_hidden_to_output = np.random.normal(0, scale=0.1, size=(N_hidden, N_output))
+
+
+# Make a forward pass through the network
+hidden_layer_in = np.dot(X, weights_input_to_hidden)
+hidden_layer_out = sigmoid(hidden_layer_in)
+
+output_layer_in = np.dot(hidden_layer_out, weights_hidden_to_output)
+output_layer_out = sigmoid(output_layer_in)
+```
+
 ### Backpropagation
 **Backpropagation** is the method used to train the network. What it does in short is to update the starting weights every time the error is bigger than a fixed value. In a nutshell, after a feedforward operation:
 1. Compare the output of the model with the desired output and calculate the error
@@ -140,6 +169,105 @@ $$$ \frac{\delta E}{\delta w_i} = \frac{\delta}{\delta w_i}\frac{1}{2}(y - \hat{
 $$$ \frac{\delta E}{\delta w_i} = \frac{\delta}{\delta w_i}\frac{1}{2}(y - \hat{y(w_i)})^2$$$
 $$$ \frac{\delta E}{\delta w_i} = (y - \hat{y})\frac{\delta}{\delta w_i}(y - \hat{y})$$$
 $$$ \frac{\delta E}{\delta w_i} = -(y - \hat{y})f^{\prime}(h)x_i$$$
+
+#### Implementation
+The following sample code calculates the backpropagation step for two sets of weights
+
+```python
+import numpy as np
+
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+x = np.array([0.5, 0.1, -0.2])
+target = 0.6
+learnrate = 0.5
+
+weights_input_hidden = np.array([[0.5, -0.6],
+                                 [0.1, -0.2],
+                                 [0.1, 0.7]])
+
+weights_hidden_output = np.array([0.1, -0.3])
+
+## Forward pass
+hidden_layer_input = np.dot(x, weights_input_hidden)
+hidden_layer_output = sigmoid(hidden_layer_input)
+
+output_layer_in = np.dot(hidden_layer_output, weights_hidden_output)
+output = sigmoid(output_layer_in)
+
+## Backwards pass
+## Calculate output error
+error = target - output
+
+# Calculate error term for output layer
+output_error_term = error * output * (1 - output)
+
+# Calculate error term for hidden layer
+hidden_error_term = np.dot(output_error_term, weights_hidden_output) * \
+                    hidden_layer_output * (1 - hidden_layer_output)
+
+# Calculate change in weights for hidden layer to output layer
+delta_w_h_o = learnrate * output_error_term * hidden_layer_output
+
+# Calculate change in weights for input layer to hidden layer
+delta_w_i_h = learnrate * hidden_error_term * x[:, None]
+```
+
+### Putting everything together
+Here's the general algorithm for updating the weights with gradient descent:
+
+* Set the weight step to zero: $$\Delta w_i = 0$$
+* For each record in the training data:
+	* Make a forward pass through the network, calculating the output $$\hat y = f(\sum_i w_i x_i)$$
+	* Calculate the error term for the output unit, $$\delta = (y - \hat y) * f'(\sum_i w_i x_i)$$
+	* Update the weight $$\Delta w_i = \Delta w_i + \delta x_i$$
+* Update the weights $$w_i = w_i + \eta \Delta w_i / m$$ where $$\eta$$ is the learning rate and $$m$$ is the number of records. Here we're averaging the weight steps to help reduce any large variations in the training data.
+* Repeat for $$e$$ epochs.
+
+You can also update the weights on each record instead of averaging the weight steps after going through all the records.
+
+Remember that we're using the sigmoid for the activation function, $$f(h) = 1/(1+e^{-h})$$
+
+And the gradient of the sigmoid is $$f'(h) = f(h) (1 - f(h))$$ where $$h$$ is the input to the output unit, $$h = \sum_i w_i x_i$$
+
+The following sample code implements gradient descent of a single hidden layer neural network that uses the **sigmoid** as the **activation function** for its output:
+```python
+for e in range(epochs):
+    del_w_input_hidden = np.zeros(weights_input_hidden.shape)
+    del_w_hidden_output = np.zeros(weights_hidden_output.shape)
+    for x, y in zip(features.values, targets):
+        ## Forward pass ##
+        # Calculate the output
+        hidden_input = np.dot(x, weights_input_hidden)
+        hidden_output = sigmoid(hidden_input)
+
+        output = sigmoid(np.dot(hidden_output,
+                                weights_hidden_output))
+
+        ## Backward pass ##
+        # Calculate the network's prediction error
+        error = y - output
+
+        # Calculate error term for the output unit
+        output_error_term = error * output * (1 - output)
+
+        ## propagate errors to hidden layer
+
+        # Calculate the hidden layer's contribution to the error
+        hidden_error = np.dot(output_error_term, weights_hidden_output)
+
+        # Calculate the error term for the hidden layer
+        hidden_error_term = hidden_error * hidden_output * (1 - hidden_output)
+
+        # Update the change in weights
+        del_w_hidden_output += output_error_term * hidden_output
+        del_w_input_hidden += hidden_error_term * x[:, None]
+
+    # Update weights
+    weights_input_hidden += learnrate * del_w_input_hidden / n_records
+    weights_hidden_output += learnrate * del_w_hidden_output / n_records
+```
 
 ## Neural Networks problems
 ### Overfitting and underfitting
@@ -187,6 +315,13 @@ $$$ STEP(n) = STEP(n) + \beta STEP(n-1) + \beta^2 STEP(n-2) + ... $$$
 This way, the steps that gradient descent has taken time ago matters less than the ones that happened recently.
 
 ## Sentiment Analysis
+
+
+# Projects
+## Predicting bike sharing
+A project, with a Neural Network built from scratch to predic the number of bikeshare users on any given day.
+
+You can find the implementation, including a Jupyter Notebook, [here](https://github.com/ibesora/udacity-deeplearning-notes/tree/master/projects/first-neural-network)
 
 # Resources
 ## Links
