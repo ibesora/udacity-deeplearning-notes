@@ -316,6 +316,62 @@ This way, the steps that gradient descent has taken time ago matters less than t
 
 ## Sentiment Analysis
 
+## Keras
+[Keras](https://keras.io/) is a hihg-level neural networks API written in Python that can be run on top of [TensorFlow](https://github.com/tensorflow/tensorflow).
+
+## Concepts
+
+* *Sequential Model:* The [keras.models.Sequential](https://keras.io/models/sequential/) class is a wrapper for a neural network model that treats the network as a sequence of layers.
+```python
+	from keras.models import Sequential
+
+	#Create the Sequential model
+	model = Sequential()
+```
+* *Layers:* The [keras.Layers](https://keras.io/layers/about-keras-layers/) class provides common methods for a variety of standard neural network layers. These layers can be added to a model with the add() method. The shape of the first layer must be specified but Keras will infer the shape of all other layers automatically.
+
+## First model
+A single hidden layer model might look like this:
+```python
+	import numpy as np
+    from keras.models import Sequential
+    from keras.layers.core import Dense, Activation
+
+    # X has shape (num_rows, num_cols), where the training data are stored
+    # as row vectors
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
+
+    # y must have an output vector for each input vector
+    y = np.array([[0], [0], [0], [1]], dtype=np.float32)
+
+    # Create the Sequential model
+    model = Sequential()
+
+    # 1st Layer - Add an input layer of 32 nodes with the same input shape as
+    # the training samples in X
+    model.add(Dense(32, input_dim=X.shape[1]))
+
+    # Add a softmax activation layer
+    model.add(Activation('softmax'))
+
+    # 2nd Layer - Add a fully connected output layer
+    model.add(Dense(1))
+
+    # Add a sigmoid activation layer
+    model.add(Activation('sigmoid'))
+```
+
+Notice that the first hidden layer creates 32 nodes which expect to receive 2-element vectors as inputs. We can also see that the output layer is just a node of dimension 1. The activation functions are added as individual nodes using the [Activation](https://keras.io/activations/) keyword.
+
+Each layer takes the output of the previous one, computes what it needs to compute, and pipes it through the next layer. 
+
+After adding all the layers, the model  needs to be compiled before it can be run. Compiling a model calls the backend where it will be run, binds the [*optimizer*](https://keras.io/optimizers/), [*loss function*](https://keras.io/losses/), [*metrics*](https://keras.io/metrics/) and other parameters required before the model can be run on the input data.
+
+```python
+model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
+```
+
+We can use ``model.summary()`` to see the resulting model architecture, ``model.fit(X, y, nb_epoch=1000, verbose=0)`` to train the model and ``model.evaluate()`` to evaluate it.
 
 # Projects
 ## Predicting bike sharing
@@ -338,3 +394,6 @@ You can find the implementation, including a Jupyter Notebook, [here](https://gi
 * [Grokking Deep Learning](https://www.manning.com/books/grokking-deep-learning)
 * [Neural Networks and Deep Learning](http://neuralnetworksanddeeplearning.com/)
 * [The deep learning text book](http://www.deeplearningbook.org/)
+
+## Websites
+* [Keras](https://keras.io)
