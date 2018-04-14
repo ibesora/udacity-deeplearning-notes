@@ -76,6 +76,56 @@ $$$P(i) = \frac{e^{Z_i}}{e^{Z_1} + ... + e^{Z_N}}$$$
 We have always worked with numerical properties but sometimes the data has non numerical properties. To use those in our model we have to convert them to numerical properties and we do that using a technique called **one-hot encoding**. What it does is it creates a column per each possible value of the property and sets a $$1$$ to the column value each row has and $$0$$ otherwise. Defining it that way assures that only one of the value columns per property is $$1$$
 ![one-hot encoding](./assets/oneHotEncoding.PNG)
 
+### Maximum Likelihood
+We can use probability to evaluate how good our model is. Once we have a model, we can compute the probability of each point having the value we gave to them and use it to compute a global value for our model. That's whats called **maximum likelihood**
+
+The **error function**, $$\hat y = \sigma(Wx+b)$$ computes exactly the probability of a point of being positive (blue in our example), so for the correctly classified points we use the error function directly and for the incorrectly classified points we use the reciprocal $$P(red) = 1 - P(blue)$$. 
+
+![Probabilities for each point](./assets/maximumLikelihod0.PNG)
+
+Multiplying the probability of each point of being as they are, we have a probability value of the model, where bigger is better.
+
+$$$Probability = Pb(blue0)*Pb(blue1)*Pr(red1)*Pr(red2)$$$
+
+Where $$Pb$$ is the probability of being blue and $$Pr$$ is the probability of being red.
+
+![Maximum likelihood](./assets/maximumLikelihod.PNG)
+
+Maximizing the probability of a model, the error decreases, so, how can we maximize the probability of a model?
+
+First we use logarithms to turn our probability function from a multiplication to a sum, noticing that $$\ln(ab) = \ln(a) + \ln(b)$$. As the logarithm of a number between $$0$$ and $$1$$ is always negative, we must change the expression to a substraction and we have what's called **cross-entropy**. If **cross-entropy** is big, the model is bad. 
+
+Given that a negative logarithm of a number close to 1 is almost 0, and that the negative logarithm of a number close to 0 is big, we can think of these values as errors at each point. That changes our goal from maximizing probability to minimizing the cross entropy.
+
+Mathematically, the **cross-entropy** of two vectors $$y$$ and $$p$$ is_
+
+$$$Cross-entropy=\displaystyle\sum_{i=1}^m y_i\ln(p_i) + (1-y_i)ln(1-p_i)$$$
+
+![Multi-class Cross-Entropy](./assets/mcCE1.PNG) 
+
+### Logistic regression
+The **logistic regression** algorithm is one of the most popular and useful algorithms in Machine Learning, and the building block of all that constitutes Deep Learning. It basically goes like this:
+
+* Take your data
+* Pick a random model
+* Calculate the error
+* Minimize the error, and obtain a better model
+* Enjoy!
+
+To calculate the error of a model we use the **cross-entropy** where the $$y$$ vector is a vector that classifies each point being $$1$$ if the point is blue and $$0$$ if the point is red. That's what we do with one-hot encoding. Then the error function is as follows:
+
+![Error function](./assets/logisticReg1.PNG) 
+
+Two things to notice with this formula:
+* When a point is blue, $$y=1$$ and $$(1-y)=0$$ so, in our case, only one of the two logarithms is computed, giving us the same formula we had before
+* We do the average as a convention
+
+Given that we can express our error function as a function of weights and biases, our model error function is:
+
+$$$E(W,b)=-\frac{1}{m}\displaystyle\sum_{i=1}^m (1-y_i)ln(1-\sigma(Wx^i+b))+ y_i\ln(\sigma(Wx^i+b))$$$
+
+where $$y_i$$ is the label of the point $$x^i$$
+
 ### Gradient descent
 In order to minimize the error function we must first compute which is the direction that maximizes the descent at each step. We'll take the negative of the gradient of the error function at each step. That assures the error at each step is lower than the error at the previous one. If we repeat this procedure we'll arrive at the minimum of the error function but that isn't always the absolute minimum. In order to not get stucked in some local minimum a number of different techniques can be used. The mathematic definition of the gradient is the following one:
 
